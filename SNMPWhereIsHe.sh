@@ -55,8 +55,8 @@ echo "#" Searching [$SEARCHADDR]
 
 for RouterName in $ROUTERLIST; do
  is_exist=0
- if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_bridge 2> /dev/null | wc -l ` -ge 2 ; then
-   echo "USING BRIDGE"
+ if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_bridge 2> /dev/null | grep -v "exists at" | wc -l ` -ge 1 ; then
+   # echo "USING BRIDGE"
    targetmib=$mibid_bridge
    NextMIB=`snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" "$targetmib".$ADDR101.$ADDR102.$ADDR103.$ADDR104.$ADDR105.$ADDR106 2> /dev/null  |
    grep "$SEARCHADDR"  |
@@ -72,8 +72,8 @@ for RouterName in $ROUTERLIST; do
   fi
  fi
 
- if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_qbridge 2> /dev/null | wc -l ` -ge 2 ; then
-   echo "USING QBRIDGE"
+ if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_qbridge 2> /dev/null | grep -v "exists at" | wc -l ` -ge 1 ; then
+   # echo "USING QBRIDGE"
    targetmib=$mibid_qbridge
    InterfaceInfo=`snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" "$targetmib".$ADDR101.$ADDR102.$ADDR103.$ADDR104.$ADDR105.$ADDR106 2> /dev/null |
     grep "INTEGER: $InterfaceInfo" |
