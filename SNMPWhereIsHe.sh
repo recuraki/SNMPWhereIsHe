@@ -4,8 +4,11 @@ ROUTERLIST=""
 # デフォルトのルータリスト
 #ROUTERLIST="$ROUTERLIST"" ""192.168.10.253"
 #ROUTERLIST="$ROUTERLIST"" ""192.168.10.254"
+# デフォルトのコミュニティ
 #SNMPCOM="public"
 
+# -c: コミュニティ
+# -h: SPC区切りのhost名
 while getopts c:h: opt; do
  case ${opt} in
  c)
@@ -34,12 +37,15 @@ SEARCHADDR=`echo "$1" |
  sed -e "s/^\(..\)\(..\)[:\.]\(..\)\(..\)[:\.]\(..\)\(..\)$/\1:\2:\3:\4:\5:\6/" |
  tr ":." "  "`
 
+# 16進数のアドレス(各桁)
 ADDR161=`echo $SEARCHADDR | cut -d " " -f 1`
 ADDR162=`echo $SEARCHADDR | cut -d " " -f 2`
 ADDR163=`echo $SEARCHADDR | cut -d " " -f 3`
 ADDR164=`echo $SEARCHADDR | cut -d " " -f 4`
 ADDR165=`echo $SEARCHADDR | cut -d " " -f 5`
 ADDR166=`echo $SEARCHADDR | cut -d " " -f 6`
+
+# 各桁 10進数 に変換する
 ADDR101=`printf "%d" 0x$ADDR161`
 ADDR102=`printf "%d" 0x$ADDR162`
 ADDR103=`printf "%d" 0x$ADDR163`
@@ -53,8 +59,11 @@ ADDR106=`printf "%d" 0x$ADDR166`
 
 echo "#" Searching [$SEARCHADDR]
 
+# 各ルータで検索を行う
 for RouterName in $ROUTERLIST; do
  is_exist=0
+
+ # BRIDGE MIBの場合の処理
  if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_bridge 2> /dev/null | grep -v "exists at" | wc -l ` -ge 1 ; then
    # echo "USING BRIDGE"
    targetmib=$mibid_bridge
@@ -72,6 +81,7 @@ for RouterName in $ROUTERLIST; do
   fi
  fi
 
+ # QBRIDGEのある場合の処理
  if test `snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" $mibid_qbridge 2> /dev/null | grep -v "exists at" | wc -l ` -ge 1 ; then
    # echo "USING QBRIDGE"
    targetmib=$mibid_qbridge
@@ -82,6 +92,7 @@ for RouterName in $ROUTERLIST; do
  fi
 
  if test "$is_exist" -eq 1 ; then
+  # 対応するものがあった場合、I/F番号を取得して、その名前を得る
   InterfaceName=`snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" .1.3.6.1.2.1.31.1.1.1.1.$InterfaceInfo  2> /dev/null |
    sed -e 's/^.*STRING: \(.*\)$/\1/'`
   InterfaceDesc=`snmpwalk -On -c "$SNMPCOM" -v 2c "$RouterName" .1.3.6.1.2.1.31.1.1.1.18.$InterfaceInfo  2> /dev/null |
